@@ -1,0 +1,55 @@
+[package]
+name = "spv-network-health"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dash Core Team"]
+description = "egui dashboard that grades every node in the Dash masternode list by probing it with an SPV sync"
+license = "MIT"
+rust-version = "1.89"
+publish = false
+
+# Standalone project (not part of the rust-dashcore workspace).
+[workspace]
+
+[dependencies]
+# rust-dashcore, pinned to the commit carrying the `peer_stats()` API from
+# PR #860 (https://github.com/dashpay/rust-dashcore/pull/860). Once that PR
+# merges, bump the rev to a dev commit — or switch these to
+# `path = "../rust-dashcore/…"` deps to hack on both projects together.
+dash-spv = { git = "https://github.com/dashpay/rust-dashcore", rev = "088b2529516dde043e4970e9f0ac32e2f4a24508" }
+dashcore = { git = "https://github.com/dashpay/rust-dashcore", rev = "088b2529516dde043e4970e9f0ac32e2f4a24508" }
+key-wallet = { git = "https://github.com/dashpay/rust-dashcore", rev = "088b2529516dde043e4970e9f0ac32e2f4a24508" }
+key-wallet-manager = { git = "https://github.com/dashpay/rust-dashcore", rev = "088b2529516dde043e4970e9f0ac32e2f4a24508" }
+
+# UI
+eframe = "0.32"
+egui_extras = "0.32"
+
+# Async runtime (backend thread; the UI thread stays sync)
+tokio = { version = "1.0", features = ["full"] }
+
+# CLI
+clap = { version = "4.0", features = ["derive", "env"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Export serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+
+[[bin]]
+name = "spv-network-health"
+path = "src/main.rs"
+
+# Mirror rust-dashcore's workspace patches (patch tables only apply at the
+# workspace root, so they must be repeated here). Keep the rev in sync with
+# the [dependencies] pins above.
+[patch.crates-io]
+dashcore_hashes = { git = "https://github.com/dashpay/rust-dashcore", rev = "088b2529516dde043e4970e9f0ac32e2f4a24508" }
+rs-x11-hash = { git = "https://github.com/dashpay/rs-x11-hash", tag = "0.1.9" }
