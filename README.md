@@ -34,8 +34,9 @@ Options:
 | `--filters` | `true` | also sync BIP157 compact filters during probes |
 | `--concurrency` | `8` | nodes probed in parallel |
 | `--probe-timeout-secs` | `180` | per-probe budget; slower nodes are graded on what they served |
+| `--skip-pose-banned` | off | exclude PoSe-banned masternodes from all lists and probes |
 
-All of these (except network and data dir) are also editable live in the UI.
+All of these (except network, data dir, and skip-pose-banned) are also editable live in the UI.
 
 ## Architecture
 

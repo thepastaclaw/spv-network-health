@@ -265,14 +265,23 @@ impl HealthApp {
                     tip_height,
                     unroutable,
                     duplicates,
+                    pose_banned,
                 } => {
                     self.discovering = false;
                     self.tip_height = Some(tip_height);
                     let mut skipped = String::new();
-                    if unroutable > 0 || duplicates > 0 {
-                        skipped = format!(
-                            " ({unroutable} unroutable, {duplicates} duplicate addresses skipped)"
-                        );
+                    if unroutable > 0 || duplicates > 0 || pose_banned > 0 {
+                        let mut parts = Vec::new();
+                        if unroutable > 0 {
+                            parts.push(format!("{unroutable} unroutable"));
+                        }
+                        if duplicates > 0 {
+                            parts.push(format!("{duplicates} duplicate addresses"));
+                        }
+                        if pose_banned > 0 {
+                            parts.push(format!("{pose_banned} PoSe-banned"));
+                        }
+                        skipped = format!(" ({} skipped)", parts.join(", "));
                     }
                     self.status_line = format!(
                         "Discovered {} nodes at height {tip_height}{skipped}.",

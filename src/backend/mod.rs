@@ -100,6 +100,9 @@ pub enum AppEvent {
         /// Masternode entries skipped: no routable address / duplicate address.
         unroutable: usize,
         duplicates: usize,
+        /// Entries excluded because they are PoSe-banned (only non-zero when
+        /// `--skip-pose-banned` is set).
+        pose_banned: usize,
     },
     DiscoveryFailed(String),
     /// Informational message for the status bar.
@@ -156,8 +159,9 @@ pub async fn run(
     let results = Arc::new(store::SharedStore::load(store::store_path(&config)));
 
     // Surface results from previous runs immediately as cached rows.
-    let cached = results.cached_nodes();
+    let mut cached = results.cached_nodes();
     if !cached.is_empty() {
+        let pose_banned = drop_pose_banned(&mut cached, &config);
         tip_height = results.tip_height();
         known_nodes = cached.clone();
         let count = cached.len();
@@ -166,6 +170,7 @@ pub async fn run(
             tip_height,
             unroutable: 0,
             duplicates: 0,
+            pose_banned,
         });
         let _ = events.send(AppEvent::Notice(format!(
             "Loaded {count} cached results from the previous run — refresh to update the node list."
@@ -189,8 +194,9 @@ pub async fn run(
                 let _ = events.send(AppEvent::DiscoveryStarted);
                 match discovery::fetch_masternode_list(&config, &events).await {
                     Ok(discovered) => {
-                        let nodes =
+                        let mut nodes =
                             results.merge_discovered(discovered.nodes, discovered.tip_height);
+                        let pose_banned = drop_pose_banned(&mut nodes, &config);
                         known_nodes = nodes.clone();
                         tip_height = discovered.tip_height;
                         let _ = events.send(AppEvent::MasternodeList {
@@ -198,6 +204,7 @@ pub async fn run(
                             tip_height: discovered.tip_height,
                             unroutable: discovered.unroutable,
                             duplicates: discovered.duplicates,
+                            pose_banned,
                         });
                     }
                     Err(e) => {
@@ -255,6 +262,7 @@ pub async fn run(
                     tip_height,
                     unroutable: 0,
                     duplicates: 0,
+                    pose_banned: 0,
                 });
                 let _ = events.send(AppEvent::Notice(format!(
                     "Cleared {cleared} stored results."
@@ -268,6 +276,17 @@ pub async fn run(
     }
     flusher.abort();
     results.flush_if_dirty();
+}
+
+/// When `--skip-pose-banned` is set, remove PoSe-banned (invalid) nodes from
+/// the list in place and return how many were dropped.
+fn drop_pose_banned(nodes: &mut Vec<NodeRecord>, config: &AppConfig) -> usize {
+    if !config.skip_pose_banned {
+        return 0;
+    }
+    let before = nodes.len();
+    nodes.retain(|n| n.is_valid);
+    before - nodes.len()
 }
 
 /// Fan probes out over semaphores: a global cap plus a per-subnet cap, with a
@@ -373,6 +392,44 @@ mod tests {
     use crate::config::SyncDepth;
 
     #[test]
+    fn drop_pose_banned_respects_flag() {
+        let node = |address: &str, is_valid: bool| NodeRecord {
+            pro_tx_hash: "4444444444444444444444444444444444444444444444444444444444444444"
+                .parse()
+                .unwrap(),
+            address: address.parse().unwrap(),
+            kind: crate::types::NodeKind::Regular,
+            is_valid,
+            status: crate::types::NodeStatus::Pending,
+            history: Vec::new(),
+        };
+        let mut config = AppConfig {
+            network: dashcore::Network::Mainnet,
+            data_dir: std::path::PathBuf::new(),
+            skip_pose_banned: false,
+            probe: ProbeConfig {
+                depth: SyncDepth::RecentBlocks(10),
+                enable_filters: false,
+                concurrency: 1,
+                timeout: Duration::from_secs(1),
+            },
+        };
+
+        let mut nodes = vec![
+            node("10.0.0.1:9999", true),
+            node("10.0.0.2:9999", false),
+            node("10.0.0.3:9999", true),
+        ];
+        assert_eq!(drop_pose_banned(&mut nodes, &config), 0);
+        assert_eq!(nodes.len(), 3, "flag off keeps banned nodes");
+
+        config.skip_pose_banned = true;
+        assert_eq!(drop_pose_banned(&mut nodes, &config), 1);
+        assert!(nodes.iter().all(|n| n.is_valid));
+        assert_eq!(nodes.len(), 2);
+    }
+
+    #[test]
     fn subnet_keys_group_by_prefix() {
         let a: SocketAddr = "95.183.53.19:9999".parse().unwrap();
         let b: SocketAddr = "95.183.99.1:9999".parse().unwrap();
@@ -403,6 +460,7 @@ mod tests {
             network: dashcore::Network::Mainnet,
             data_dir: std::env::temp_dir()
                 .join(format!("spv-health-backend-test-{}", std::process::id())),
+            skip_pose_banned: false,
             probe: ProbeConfig {
                 depth: SyncDepth::RecentBlocks(10),
                 enable_filters: false,

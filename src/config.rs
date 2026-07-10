@@ -35,6 +35,11 @@ pub struct Args {
     /// graded on what it managed to serve).
     #[arg(long, default_value_t = 180)]
     pub probe_timeout_secs: u64,
+
+    /// Exclude PoSe-banned masternodes entirely (they won't appear in any
+    /// list or be probed).
+    #[arg(long, default_value_t = false)]
+    pub skip_pose_banned: bool,
 }
 
 /// How much chain each probe asks the node to serve.
@@ -81,6 +86,8 @@ pub struct AppConfig {
     pub network: Network,
     pub data_dir: PathBuf,
     pub probe: ProbeConfig,
+    /// Drop PoSe-banned (invalid) masternodes from every list and probe run.
+    pub skip_pose_banned: bool,
 }
 
 impl AppConfig {
@@ -97,6 +104,7 @@ impl AppConfig {
         Ok(AppConfig {
             network,
             data_dir: args.data_dir.clone(),
+            skip_pose_banned: args.skip_pose_banned,
             probe: ProbeConfig {
                 depth: SyncDepth::parse(&args.sync_depth)?,
                 enable_filters: args.filters,

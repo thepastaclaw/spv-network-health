@@ -547,6 +547,7 @@ mod tests {
         let config = AppConfig {
             network: dashcore::Network::Mainnet,
             data_dir: std::env::temp_dir().join("spv-health-discovery-smoke"),
+            skip_pose_banned: false,
             probe: ProbeConfig {
                 depth: SyncDepth::RecentBlocks(1000),
                 enable_filters: true,
