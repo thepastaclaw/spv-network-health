@@ -37,6 +37,34 @@ Options:
 
 All of these (except network and data dir) are also editable live in the UI.
 
+## Headless mode
+
+For CI or scheduled runs, `--headless` skips the UI entirely: it discovers
+the masternode list, probes every node (or the first `--node-limit` of
+them), writes a static report, and exits.
+
+```bash
+cargo run -- --headless --network mainnet --sync-depth 1000 \
+  --node-limit 50 --output-dir ./spv-health-report
+```
+
+| flag | default | meaning |
+|------|---------|---------|
+| `--headless` | off | run without the UI: discover, probe, write a report, exit |
+| `--node-limit` | none | probe at most this many discovered nodes (headless only) |
+| `--output-dir` | `./spv-health-report` | where the report is written |
+
+The report directory contains:
+
+- `index.html` — a self-contained, offline-viewable summary table (no
+  external resources or scripts), sorted best-graded first
+- `results.json` / `results.csv` — the same rows the UI's export buttons
+  produce, for further processing
+
+The process exits non-zero on discovery failure or if there are no nodes to
+probe; per-node probe failures are recorded in the report instead of
+aborting the run.
+
 ## Architecture
 
 ```
