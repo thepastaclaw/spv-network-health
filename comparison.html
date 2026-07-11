@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SE Asia vs Illinois SPV Probe Comparison</title>
+<style>
+:root { color-scheme: light dark; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; max-width: 1200px; margin-inline: auto; line-height: 1.5; }
+h1 { margin-bottom: 0.25rem; }
+h2 { margin-top: 2.5rem; border-bottom: 1px solid currentColor; padding-bottom: 0.3rem; }
+h3 { margin-top: 1.5rem; }
+.meta { opacity: 0.7; margin-bottom: 1.5rem; }
+.back-link { display: inline-block; margin-bottom: 1rem; opacity: 0.85; }
+.summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.stat { border: 1px solid currentColor; border-radius: 8px; padding: 0.5rem 1rem; min-width: 110px; text-align: center; opacity: 0.9; }
+.stat .n { font-size: 1.4rem; font-weight: 700; display: block; }
+.stat .lbl { font-size: 0.78rem; opacity: 0.75; }
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+th, td { padding: 4px 8px; border-bottom: 1px solid currentColor; text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td.hash { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; opacity: 0.75; text-align: left; }
+th { position: sticky; top: 0; background: Canvas; }
+.grade { font-weight: 700; border-radius: 4px; padding: 2px 6px; color: #111; }
+.grade-a { background: #2ecc71; }
+.grade-b { background: #9acd32; }
+.grade-c { background: #f1c40f; }
+.grade-d { background: #e67e22; color: #fff; }
+.grade-f { background: #e74c3c; color: #fff; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1rem 0; }
+.card { border: 1px solid currentColor; border-radius: 10px; padding: 1rem; opacity: 0.92; }
+.card h4 { margin: 0 0 0.4rem; }
+ul.tight li { margin-bottom: 0.4rem; }
+.links a { display: block; margin-bottom: 0.3rem; }
+.pill { display: inline-block; border: 1px solid currentColor; border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.78rem; opacity: 0.85; margin-right: 0.4rem; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid currentColor; opacity: 0.65; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">&larr; back to network health report</a>
+<h1>SE Asia vs Illinois SPV Probe Comparison</h1>
+<p class="meta">generated: 2026-07-11T00:00:00Z (2026-07-11 UTC) &middot; comparative scope: 50 nodes probed from both vantage points &middot; SE Asia full-dataset context: 2,605 discovered nodes &middot; matched by <code>pro_tx_hash</code> (fallback: address) &middot; 50/50 matched by hash</p>
+
+<div class="summary">
+<div class="stat"><span class="n">50 / 2,605</span><span class="lbl">overlap / SE Asia total</span></div>
+<div class="stat"><span class="n">100%</span><span class="lbl">reachability agreement</span></div>
+<div class="stat"><span class="n">22/42</span><span class="lbl">grade agreement (52.4%)</span></div>
+<div class="stat"><span class="n">0.18</span><span class="lbl">score correlation (r)</span></div>
+<div class="stat"><span class="n">11.0</span><span class="lbl">mean |score diff|</span></div>
+<div class="stat"><span class="n">6.1</span><span class="lbl">median |score diff|</span></div>
+<div class="stat"><span class="n">19/42</span><span class="lbl">within &plusmn;5 pts</span></div>
+<div class="stat"><span class="n">25/42</span><span class="lbl">within &plusmn;10 pts</span></div>
+</div>
+
+<h2>1. Reachability: highly consistent</h2>
+<p>Of the 50 overlapping nodes, both vantage points agree on reachability for all 50 (100%). 42 nodes were reachable (<code>status=done</code>) from both Illinois and SE Asia, and 8 were unreachable from both &mdash; the same 8 nodes in each case. Neither vantage point found a node the other couldn't reach.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>&nbsp;</th><th>SE Asia: reachable</th><th>SE Asia: unreachable</th></tr></thead>
+<tbody>
+<tr><td>Illinois: reachable</td><td>42</td><td>0</td></tr>
+<tr><td>Illinois: unreachable</td><td>0</td><td>8</td></tr>
+</tbody>
+</table>
+</div>
+<p>SE Asia full-dataset context: 2171 of 2605 discovered nodes (83.3%) were reachable, close to the 84.0% reachable rate seen on the 50-node Illinois sample &mdash; reachability looks like a property of the node population, not of the observer.</p>
+
+<h2>2. Grades and scores: observer-relative</h2>
+<p>Among the 42 nodes graded from both vantage points, exact letter-grade agreement holds for only 22 (52.4%). Nearly every disagreement moves a node down when graded from the farther-away SE Asia vantage point, never up.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>SE Asia grade</th><th>Illinois grade</th><th>count</th><th>relationship</th></tr></thead>
+<tbody>
+<tr><td><span class="grade grade-a">A</span></td><td><span class="grade grade-a">A</span></td><td>22</td><td>same</td></tr>
+<tr><td><span class="grade grade-b">B</span></td><td><span class="grade grade-a">A</span></td><td>15</td><td>changed</td></tr>
+<tr><td><span class="grade grade-d">D</span></td><td><span class="grade grade-a">A</span></td><td>2</td><td>changed</td></tr>
+<tr><td><span class="grade grade-c">C</span></td><td><span class="grade grade-a">A</span></td><td>2</td><td>changed</td></tr>
+<tr><td><span class="grade grade-d">D</span></td><td><span class="grade grade-b">B</span></td><td>1</td><td>changed</td></tr>
+</tbody>
+</table>
+</div>
+<div class="card-grid">
+<div class="card"><h4>Score correlation</h4>Pearson r = 0.18 across 42 nodes &mdash; a weak positive relationship. A node's score from one vantage point is a poor predictor of its score from another.</div>
+<div class="card"><h4>Score medians</h4>Illinois median 97.5 vs SE Asia median 92.2 (means 96.8 vs 87.1) &mdash; the same nodes score visibly lower when probed from farther away.</div>
+<div class="card"><h4>Absolute difference</h4>Mean 11.0 pts, median 6.1 pts. 19/42 (45.2%) stay within &plusmn;5 pts; 25/42 (59.5%) stay within &plusmn;10 pts. The remaining 17 nodes swing by more than 10 points across observer locations and run conditions.</div>
+</div>
+
+<h3>Median performance metrics (42 nodes graded by both)</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>metric</th><th>Illinois</th><th>SE Asia</th></tr></thead>
+<tbody>
+<tr><td>connect time (ms)</td><td>265</td><td>428</td></tr>
+<tr><td>avg ping (ms)</td><td>270</td><td>450</td></tr>
+<tr><td>header sync throughput (hdr/s)</td><td>6,863</td><td>2,063</td></tr>
+<tr><td>filter sync throughput (filt/s)</td><td>11,773</td><td>2,864</td></tr>
+<tr><td>total probe time (s)</td><td>11.63</td><td>39.03</td></tr>
+</tbody>
+</table>
+</div>
+<p>The workloads are closely comparable: Illinois explicitly used a 50,000-block depth and produced a uniform 52,843-header target, while SE Asia produced a uniform 52,611-header target consistent with the same setting. The 232-header difference follows the later Illinois tip/checkpoint anchor; it is less than 0.5% of the workload. Geography and run conditions, not a shallow-versus-deep mismatch, therefore dominate the observed performance gap.</p>
+
+<h2>3. Geographic proximity effects: concrete examples</h2>
+<p>The clearest evidence that grades are observer-relative comes from comparing per-node connect/ping times across the two vantage points. Nodes hosted in Asian address space connect and respond far faster when probed from SE Asia; nodes hosted in North American address space do the opposite.</p>
+<h3>Faster from SE Asia (Asia-hosted nodes)</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>address</th><th>connect ms (IL)</th><th>connect ms (SEA)</th><th>score/grade (IL)</th><th>score/grade (SEA)</th></tr></thead>
+<tbody>
+<tr><td>8.219.185.232:9999</td><td>1219</td><td>81</td><td>94.9 (<span class="grade grade-a">A</span>)</td><td>99.7 (<span class="grade grade-a">A</span>)</td></tr>
+<tr><td>8.222.147.108:9999</td><td>1201</td><td>74</td><td>94.9 (<span class="grade grade-a">A</span>)</td><td>99.7 (<span class="grade grade-a">A</span>)</td></tr>
+<tr><td>83.149.100.186:9999</td><td>1515</td><td>432</td><td>97.0 (<span class="grade grade-a">A</span>)</td><td>83.3 (<span class="grade grade-b">B</span>)</td></tr>
+<tr><td>178.128.80.241:9999</td><td>734</td><td>167</td><td>95.2 (<span class="grade grade-a">A</span>)</td><td>99.5 (<span class="grade grade-a">A</span>)</td></tr>
+</tbody>
+</table>
+</div>
+<h3>Faster from Illinois (North America-hosted nodes)</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>address</th><th>connect ms (IL)</th><th>connect ms (SEA)</th><th>score/grade (IL)</th><th>score/grade (SEA)</th></tr></thead>
+<tbody>
+<tr><td>178.208.87.231:9999</td><td>390</td><td>1178</td><td>92.4 (<span class="grade grade-a">A</span>)</td><td>77.7 (<span class="grade grade-b">B</span>)</td></tr>
+<tr><td>107.173.28.208:9999</td><td>39</td><td>524</td><td>100.0 (<span class="grade grade-a">A</span>)</td><td>94.6 (<span class="grade grade-a">A</span>)</td></tr>
+<tr><td>138.197.141.70:9999</td><td>73</td><td>538</td><td>99.6 (<span class="grade grade-a">A</span>)</td><td>94.1 (<span class="grade grade-a">A</span>)</td></tr>
+<tr><td>159.203.4.177:9999</td><td>78</td><td>543</td><td>90.9 (<span class="grade grade-a">A</span>)</td><td>94.2 (<span class="grade grade-a">A</span>)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Example: <code>8.219.185.232:9999</code> and <code>8.222.147.108:9999</code> (Alibaba Cloud Singapore-range addresses) connect in ~70&ndash;100&thinsp;ms from SE Asia but take over a full second (1,200&thinsp;ms+) from Illinois &mdash; graded A from SE Asia, still A from Illinois only because the scoring curve tolerates it, but with a visibly worse latency profile. Conversely <code>107.173.28.208:9999</code> and <code>138.197.141.70:9999</code> (US-range hosting) connect in under 100&thinsp;ms from Illinois but 500&thinsp;ms+ from SE Asia. The starkest score swings, <code>93.190.140.101:9999</code> (98.1&rarr;43.3, A&rarr;D) and <code>151.244.85.155:9999</code> (94.9&rarr;45.2, A&rarr;D), both show connect and ping times from SE Asia several times higher than from Illinois.</p>
+
+<h2>4. Full per-node comparison (sorted by |score difference|)</h2>
+<p>All 50 overlapping nodes, ranked by the absolute score difference between vantage points (largest first). Unreachable-from-both nodes are listed at the end with a score of &mdash;.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>address</th><th>pro_tx_hash</th><th>IL score</th><th>IL grade</th><th>SEA score</th><th>SEA grade</th><th>diff (IL&minus;SEA)</th><th>IL connect ms</th><th>SEA connect ms</th><th>IL ping ms</th><th>SEA ping ms</th></tr></thead>
+<tbody>
+<tr><td>93.190.140.101:9999</td><td class="hash">914450083406ca13d846da8df398fd7da6ee14d0212b29144554d069394b8001</td><td>98.1</td><td><span class="grade grade-a">A</span></td><td>43.3</td><td><span class="grade grade-d">D</span></td><td>+54.8</td><td>211</td><td>463</td><td>227</td><td>467</td></tr>
+<tr><td>151.244.85.155:9999</td><td class="hash">2cd4c562bda29b4c4bffe0c74d55ba08f4a169b741872ca571662f7e5b0cd301</td><td>94.9</td><td><span class="grade grade-a">A</span></td><td>45.2</td><td><span class="grade grade-d">D</span></td><td>+49.7</td><td>295</td><td>735</td><td>298</td><td>1736</td></tr>
+<tr><td>178.208.87.221:9999</td><td class="hash">14caec03b64dab3e2d26807fc5101735194197a68990cb283ad3ebbc88a43b02</td><td>89.5</td><td><span class="grade grade-b">B</span></td><td>57.0</td><td><span class="grade grade-d">D</span></td><td>+32.5</td><td>371</td><td>542</td><td>377</td><td>565</td></tr>
+<tr><td>34.209.37.222:9999</td><td class="hash">466f1b8c3c8af9c9ab67ab084f7b04d8c960cba34922e902953f1da8a819e503</td><td>99.4</td><td><span class="grade grade-a">A</span></td><td>73.7</td><td><span class="grade grade-c">C</span></td><td>+25.7</td><td>103</td><td>445</td><td>103</td><td>5429</td></tr>
+<tr><td>142.93.38.4:9999</td><td class="hash">59e5bfe32c3518664505b08e9c3eb392fa933e49d50a641602c3068230333404</td><td>98.3</td><td><span class="grade grade-a">A</span></td><td>73.4</td><td><span class="grade grade-c">C</span></td><td>+24.9</td><td>204</td><td>541</td><td>202</td><td>7886</td></tr>
+<tr><td>46.30.189.251:9999</td><td class="hash">582a9660e7edbd0f37176e5454b5159cf4f60f19206a105c0d6b68c362dda804</td><td>98.1</td><td><span class="grade grade-a">A</span></td><td>79.9</td><td><span class="grade grade-b">B</span></td><td>+18.2</td><td>220</td><td>404</td><td>220</td><td>392</td></tr>
+<tr><td>188.226.224.233:9999</td><td class="hash">319890e005f6512ca029403480d16268da0f6f10ee983db19963550af2473402</td><td>98.2</td><td><span class="grade grade-a">A</span></td><td>80.3</td><td><span class="grade grade-b">B</span></td><td>+17.9</td><td>215</td><td>408</td><td>217</td><td>456</td></tr>
+<tr><td>135.181.8.82:9999</td><td class="hash">80957a66681c9408efe04be251c30f844f11cfc106c0ff95e768f81bf860b603</td><td>97.4</td><td><span class="grade grade-a">A</span></td><td>79.9</td><td><span class="grade grade-b">B</span></td><td>+17.5</td><td>447</td><td>666</td><td>266</td><td>444</td></tr>
+<tr><td>161.97.88.219:9999</td><td class="hash">e491fa65da757a49a3aa8aee25f2abd1030b1c4428d21c8272950ac51ec1f800</td><td>97.7</td><td><span class="grade grade-a">A</span></td><td>81.2</td><td><span class="grade grade-b">B</span></td><td>+16.5</td><td>256</td><td>428</td><td>259</td><td>399</td></tr>
+<tr><td>132.243.197.91:9999</td><td class="hash">cd831227bc7704cd9f302bb71144e3854ca6c6918d65bd1334629f80b662b000</td><td>97.0</td><td><span class="grade grade-a">A</span></td><td>81.2</td><td><span class="grade grade-b">B</span></td><td>+15.8</td><td>611</td><td>397</td><td>286</td><td>409</td></tr>
+<tr><td>178.208.87.231:9999</td><td class="hash">d729b9bf083f089d666ced7ee7358d12e67deee2a2dd6ca4eb7a9efcd9ca1001</td><td>92.4</td><td><span class="grade grade-a">A</span></td><td>77.7</td><td><span class="grade grade-b">B</span></td><td>+14.7</td><td>390</td><td>1178</td><td>406</td><td>604</td></tr>
+<tr><td>83.149.100.186:9999</td><td class="hash">fbcd3f045dd2a8b5439cc103edb301274858a4510eac19d64f894bd90cc83300</td><td>97.0</td><td><span class="grade grade-a">A</span></td><td>83.3</td><td><span class="grade grade-b">B</span></td><td>+13.7</td><td>1515</td><td>432</td><td>204</td><td>397</td></tr>
+<tr><td>157.173.122.20:9999</td><td class="hash">0b8241b78742cc7b8e2d2a2d00489fa4bf975afa1f381bce5b0d1bb0fb7b6c04</td><td>97.5</td><td><span class="grade grade-a">A</span></td><td>84.5</td><td><span class="grade grade-b">B</span></td><td>+13.0</td><td>266</td><td>466</td><td>273</td><td>388</td></tr>
+<tr><td>46.4.162.103:9999</td><td class="hash">fe0b95356aa77dc36a40e416914a2ea9203aafcfad5d832c8343b77238109204</td><td>97.8</td><td><span class="grade grade-a">A</span></td><td>85.4</td><td><span class="grade grade-b">B</span></td><td>+12.4</td><td>254</td><td>454</td><td>253</td><td>399</td></tr>
+<tr><td>161.97.85.159:9999</td><td class="hash">9066131ee934d02233031e15775a8c24caa6707382395fa43a211d6b89033202</td><td>98.2</td><td><span class="grade grade-a">A</span></td><td>86.4</td><td><span class="grade grade-b">B</span></td><td>+11.8</td><td>214</td><td>473</td><td>217</td><td>521</td></tr>
+<tr><td>159.65.59.244:9999</td><td class="hash">c800f1a9f772b3e9912c5431cb304a4fee03d7232ca062abcfde6f6376038b01</td><td>97.8</td><td><span class="grade grade-a">A</span></td><td>86.6</td><td><span class="grade grade-b">B</span></td><td>+11.2</td><td>706</td><td>427</td><td>207</td><td>417</td></tr>
+<tr><td>91.98.160.22:9999</td><td class="hash">60aafb3092ed1b493895500bdb58763e9dcc1d0010a6f641ba0ee4942abb1900</td><td>90.9</td><td><span class="grade grade-a">A</span></td><td>80.1</td><td><span class="grade grade-b">B</span></td><td>+10.8</td><td>236</td><td>422</td><td>908</td><td>461</td></tr>
+<tr><td>151.244.85.9:9999</td><td class="hash">5901cde754878378e193194d794c164837620708f66433d505215159cc908101</td><td>97.1</td><td><span class="grade grade-a">A</span></td><td>87.7</td><td><span class="grade grade-b">B</span></td><td>+9.4</td><td>472</td><td>424</td><td>293</td><td>507</td></tr>
+<tr><td>168.119.80.12:9999</td><td class="hash">aa935d19d079ddead0a14dad769ca724d599383d7fbe469ed5dba2c22b7c0c04</td><td>96.9</td><td><span class="grade grade-a">A</span></td><td>87.8</td><td><span class="grade grade-b">B</span></td><td>+9.1</td><td>763</td><td>392</td><td>287</td><td>529</td></tr>
+<tr><td>109.199.97.144:9999</td><td class="hash">757d672c78fc11fa30ad4709d47cfeafd6289c2895ca09ad840ca10d035dea02</td><td>97.8</td><td><span class="grade grade-a">A</span></td><td>89.3</td><td><span class="grade grade-b">B</span></td><td>+8.5</td><td>248</td><td>463</td><td>250</td><td>470</td></tr>
+<tr><td>188.40.180.135:9999</td><td class="hash">3b86147d2c4ff0549e4cbd9d755cc0dcf434ed8c608f1680a9e0bd168126a102</td><td>97.4</td><td><span class="grade grade-a">A</span></td><td>90.7</td><td><span class="grade grade-a">A</span></td><td>+6.7</td><td>263</td><td>398</td><td>286</td><td>395</td></tr>
+<tr><td>138.197.141.70:9999</td><td class="hash">a239ad07a5b7b2919ea4a9dc5101c9d80f124e0d8adcd8cffd110dcfd4dde003</td><td>99.6</td><td><span class="grade grade-a">A</span></td><td>94.1</td><td><span class="grade grade-a">A</span></td><td>+5.5</td><td>73</td><td>538</td><td>90</td><td>576</td></tr>
+<tr><td>107.173.28.208:9999</td><td class="hash">7dacd85c7ceb6d983ac6bdc38522e131769dea566d1088eeae9352bc52d64d00</td><td>100.0</td><td><span class="grade grade-a">A</span></td><td>94.6</td><td><span class="grade grade-a">A</span></td><td>+5.4</td><td>39</td><td>524</td><td>40</td><td>522</td></tr>
+<tr><td>45.61.186.121:9999</td><td class="hash">7d26731a08910bc910a6b8659929df984742ca751991e1590113503ea3041a01</td><td>99.4</td><td><span class="grade grade-a">A</span></td><td>94.4</td><td><span class="grade grade-a">A</span></td><td>+5.0</td><td>110</td><td>541</td><td>110</td><td>540</td></tr>
+<tr><td>8.222.147.108:9999</td><td class="hash">0c2679ddf6978a22d4591900eb8e2d9a64185b933750ec2eacd9d234c5c23700</td><td>94.9</td><td><span class="grade grade-a">A</span></td><td>99.7</td><td><span class="grade grade-a">A</span></td><td>-4.8</td><td>1201</td><td>74</td><td>429</td><td>74</td></tr>
+<tr><td>8.219.185.232:9999</td><td class="hash">ea41ae9beac1d9283e4ea2f91b9fa6586b74cacc6deea5477a2956ee49aa9200</td><td>94.9</td><td><span class="grade grade-a">A</span></td><td>99.7</td><td><span class="grade grade-a">A</span></td><td>-4.8</td><td>1219</td><td>81</td><td>427</td><td>77</td></tr>
+<tr><td>89.35.131.218:9999</td><td class="hash">9d5eea2d699a055d71a042326832b948ca3b3de8928f5697f6e9acbf6fdc7603</td><td>98.1</td><td><span class="grade grade-a">A</span></td><td>93.7</td><td><span class="grade grade-a">A</span></td><td>+4.4</td><td>213</td><td>469</td><td>225</td><td>472</td></tr>
+<tr><td>178.128.80.241:9999</td><td class="hash">f856bb047fc076d55a535f7352fe64071eaff7b57408d57bdea3fa24d2d26704</td><td>95.2</td><td><span class="grade grade-a">A</span></td><td>99.5</td><td><span class="grade grade-a">A</span></td><td>-4.3</td><td>734</td><td>167</td><td>447</td><td>94</td></tr>
+<tr><td>8.222.135.69:9999</td><td class="hash">cc9fda7764004877bd332a552b7dc5ddef1011d6d45ee9d8924fa972b8b6f200</td><td>95.7</td><td><span class="grade grade-a">A</span></td><td>99.8</td><td><span class="grade grade-a">A</span></td><td>-4.1</td><td>433</td><td>99</td><td>427</td><td>72</td></tr>
+<tr><td>8.219.228.99:9999</td><td class="hash">b3fade6a0306792d3fbc1e592bb1a6382fd6f2672b222c06b7df2f00641f4503</td><td>95.7</td><td><span class="grade grade-a">A</span></td><td>99.7</td><td><span class="grade grade-a">A</span></td><td>-4.0</td><td>425</td><td>95</td><td>428</td><td>76</td></tr>
+<tr><td>8.219.234.148:9999</td><td class="hash">a5d0af51d7e64900f2bcd3085dfe34a151085f208bfdc0b90d4fdec213a1e802</td><td>95.8</td><td><span class="grade grade-a">A</span></td><td>99.2</td><td><span class="grade grade-a">A</span></td><td>-3.4</td><td>424</td><td>67</td><td>425</td><td>129</td></tr>
+<tr><td>159.203.4.177:9999</td><td class="hash">22ce2e5fce17c631de6baebd11533633a12ae980e15fbc5e527883cc4d822d00</td><td>90.9</td><td><span class="grade grade-a">A</span></td><td>94.2</td><td><span class="grade grade-a">A</span></td><td>-3.3</td><td>78</td><td>543</td><td>912</td><td>561</td></tr>
+<tr><td>82.196.9.192:9999</td><td class="hash">eda7fd55c63ac3bd8600a308c67ead335f78379aece503f548109bb9fbc72601</td><td>98.2</td><td><span class="grade grade-a">A</span></td><td>95.1</td><td><span class="grade grade-a">A</span></td><td>+3.1</td><td>216</td><td>566</td><td>216</td><td>473</td></tr>
+<tr><td>188.40.178.69:9999</td><td class="hash">0bddae6751bb3d536e89703d9a69a83567cf92eab9747bde18d539ac48e56200</td><td>97.4</td><td><span class="grade grade-a">A</span></td><td>94.8</td><td><span class="grade grade-a">A</span></td><td>+2.6</td><td>264</td><td>398</td><td>287</td><td>519</td></tr>
+<tr><td>192.248.169.180:9999</td><td class="hash">93c83f915d010abb8ca4fbb57f8fb1d4ae37738a7092ec9f84bcea29d4053904</td><td>98.4</td><td><span class="grade grade-a">A</span></td><td>96.1</td><td><span class="grade grade-a">A</span></td><td>+2.3</td><td>197</td><td>443</td><td>198</td><td>394</td></tr>
+<tr><td>178.62.236.233:9999</td><td class="hash">01a9810a299263b05ba5a1bb9e14e2c191d69266674830be9bc8fe721224c101</td><td>98.0</td><td><span class="grade grade-a">A</span></td><td>95.7</td><td><span class="grade grade-a">A</span></td><td>+2.3</td><td>391</td><td>500</td><td>219</td><td>425</td></tr>
+<tr><td>66.245.196.52:9999</td><td class="hash">801a47e66cae32f74b3a2a241d9b8efc467b1cf0db18e85c07683d1765ace003</td><td>98.4</td><td><span class="grade grade-a">A</span></td><td>96.2</td><td><span class="grade grade-a">A</span></td><td>+2.2</td><td>195</td><td>395</td><td>199</td><td>386</td></tr>
+<tr><td>188.40.251.207:9999</td><td class="hash">33062bab7965a6bb7a097d58362f7e80bc0e1bd2312f2cb23e940697fc93ae00</td><td>97.5</td><td><span class="grade grade-a">A</span></td><td>95.4</td><td><span class="grade grade-a">A</span></td><td>+2.1</td><td>252</td><td>398</td><td>275</td><td>467</td></tr>
+<tr><td>161.97.180.182:9999</td><td class="hash">156abacbe8a58236b8a982b375fc11499e4984dc4504a99aa5b9b24da62f5d03</td><td>97.7</td><td><span class="grade grade-a">A</span></td><td>96.1</td><td><span class="grade grade-a">A</span></td><td>+1.6</td><td>271</td><td>378</td><td>260</td><td>397</td></tr>
+<tr><td>188.40.182.196:9999</td><td class="hash">2a2b66fbd7098a2dd8436c540f42e85f12964a63f68e021cef0aa486f23a0401</td><td>97.0</td><td><span class="grade grade-a">A</span></td><td>95.8</td><td><span class="grade grade-a">A</span></td><td>+1.2</td><td>577</td><td>391</td><td>295</td><td>428</td></tr>
+<tr><td>132.243.197.237:9999</td><td class="hash">78e3b02e05391adb953e15d6bdb3daae616fde0c1a014d456ee010483e58f300</td><td>96.0</td><td><span class="grade grade-a">A</span></td><td>95.2</td><td><span class="grade grade-a">A</span></td><td>+0.8</td><td>469</td><td>402</td><td>399</td><td>468</td></tr>
+<tr><td>5.189.145.80:9999</td><td class="hash">5dd3585287d5401405c915306d7e206444d63bd0ce1b1dd190dff73de6a70502</td><td>97.0</td><td><span class="grade grade-a">A</span></td><td>96.3</td><td><span class="grade grade-a">A</span></td><td>+0.7</td><td>290</td><td>419</td><td>318</td><td>376</td></tr>
+<tr><td>112.124.37.208:9999</td><td class="hash">5867ca9663db4a773e962a890d21e0046b30c99e41a0eb85c4ab9e240d1b7400</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>[::]:0</td><td class="hash">9f312b7f1a31b4ffda3446c7deb7c7c94a334acab26b402411da6559de6bbe00</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>162.243.28.48:9999</td><td class="hash">2d34df681821a0e560a9b655413d39efe72ec33e0e9af5b25234974179bcc500</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>176.123.57.214:9999</td><td class="hash">ab7fbcfea1add2f13a5e0c8afdf0afcf516a9ebe5aa7777da1e09ee4d8cbeb00</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>80.209.233.182:9999</td><td class="hash">174747cfb25de3b935d58d558d2928343e18eee50edb7bbf97aa2fb6f057f800</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>176.123.57.206:9999</td><td class="hash">2a590f2648c7a6979e689b1010e04e46e49544025ff1b221328347cc2aa5b201</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>45.76.94.156:9999</td><td class="hash">68db95cc62ca4c1946d6a8d2722634ddd8ef80ab44caa9fd6fd993320fe8a903</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>139.180.158.125:9999</td><td class="hash">590a2512c915b24ccc86b852431f0de1014a25542f08645f70f242b715e42004</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>5. Data &amp; sources</h2>
+<div class="links">
+<a href="se-asia-results.csv">se-asia-results.csv</a> &mdash; public SE Asia run, 2,605 discovered nodes
+<a href="illinois-results.csv">illinois-results.csv</a> &mdash; controlled Illinois run, 50-node sample
+<a href="https://docs.google.com/spreadsheets/d/1x0SSIyvRduA31wEsQZR7Ws9_bxT0LJwobTGYzet3i1M/edit?gid=0#gid=0">Original public Google Sheet (SE Asia run)</a>
+</div>
+<p>SE Asia full-dataset context: 83.3% reachable, grade distribution A: 1838, B: 308, C: 14, D: 11, average score 94.0 (median 95.7) across all 2605 discovered nodes. Illinois 50-node sample: 84.0% reachable, grade distribution A: 41, B: 1.</p>
+
+<h2>6. Conclusion</h2>
+<p><strong>Reachability is highly consistent across observers</strong> &mdash; the same nodes are up or down almost regardless of who is probing. <strong>Performance and grades are observer-relative and materially geography-sensitive</strong> &mdash; the same 42 nodes graded by both runs agree only 52.4% of the time on letter grade, correlate weakly on score (r=0.18), and differ by a mean of 11.0 points across observer locations. A single-vantage-point health report describes "network health as seen from here," not an absolute property of the node.</p>
+
+<h2>7. Limitations</h2>
+<ul class="tight">
+<li>Each region was probed exactly once &mdash; no repeated rounds to separate noise from a stable geographic effect.</li>
+<li>The two runs were not simultaneous: their reported chain tips were roughly 153 blocks apart, so the networks were probed at slightly different points in time.</li>
+<li>Illinois is a deterministic 50-node sample (fixed selection), not a random sample, so it should not be read as statistically representative of the full 2,605-node population.</li>
+<li>Concurrency for the SE Asia run is not recorded in its CSV output, so probing parallelism cannot be compared directly between runs.</li>
+<li>Sync depth is inferred rather than stated for SE Asia: every SE Asia row shares a uniform <code>headers_target</code> of 52,611, consistent with a ~50,000-block depth setting, but it is inferred, not logged. Illinois explicitly used <code>--sync-depth 50000</code>, filters enabled, concurrency 8, and a 180-second timeout.</li>
+</ul>
+
+<h2>8. Recommendation for future multi-vantage reports</h2>
+<ul class="tight">
+<li>Run every vantage point with the identical explicit configuration (sync depth, filters, concurrency, timeout) and log that configuration in every run's output &mdash; never leave it to be inferred.</li>
+<li>Run simultaneous, repeated rounds from each region rather than one-off single passes, so transient network conditions can be separated from persistent geographic effects.</li>
+<li>Aggregate reachability across vantage points per node as a quorum (e.g. majority-reachable), plus a median and worst-case score per node, instead of trusting any single observer's grade.</li>
+<li>Always record region, timestamp, and full probe configuration alongside every report so cross-run comparisons like this one don't require reconstruction after the fact.</li>
+</ul>
+
+<footer>Dash SPV Network Health &middot; comparison report generated 2026-07-11 UTC from se-asia-results.csv and illinois-results.csv &middot; no JavaScript, no remote assets.</footer>
+</body>
+</html>
