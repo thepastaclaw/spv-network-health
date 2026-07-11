@@ -6,6 +6,7 @@ mod backend;
 mod config;
 mod export;
 mod grading;
+mod headless;
 mod types;
 mod ui;
 
@@ -31,6 +32,30 @@ fn main() -> eframe::Result {
             std::process::exit(2);
         }
     };
+
+    if args.headless {
+        let runtime = tokio::runtime::Runtime::new().expect("failed to start tokio runtime");
+        return match runtime.block_on(headless::run(
+            app_config,
+            args.node_limit,
+            args.output_dir.clone(),
+        )) {
+            Ok(summary) => {
+                println!(
+                    "wrote report for {} nodes ({} graded, {} failed) to {}",
+                    summary.probed,
+                    summary.graded,
+                    summary.failed,
+                    summary.output_dir.join("index.html").display()
+                );
+                Ok(())
+            }
+            Err(e) => {
+                eprintln!("error: {e:#}");
+                std::process::exit(1);
+            }
+        };
+    }
 
     // UI -> backend commands; backend -> UI events.
     let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();

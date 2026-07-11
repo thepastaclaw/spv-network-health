@@ -26,7 +26,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 
-use cancellation::CancellationFlag;
+pub(crate) use cancellation::CancellationFlag;
 
 use crate::config::{AppConfig, ProbeConfig};
 use crate::types::{NodeRecord, ProbeResult, ProbeSnapshot};
@@ -274,7 +274,7 @@ pub async fn run(
 /// small deterministic start jitter so bursts don't hit the network in
 /// lockstep.
 #[allow(clippy::too_many_arguments)]
-fn spawn_probes(
+pub(crate) fn spawn_probes(
     targets: Vec<SocketAddr>,
     tip_height: u32,
     identities: HashMap<SocketAddr, store::NodeIdentity>,

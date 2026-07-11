@@ -35,6 +35,21 @@ pub struct Args {
     /// graded on what it managed to serve).
     #[arg(long, default_value_t = 180)]
     pub probe_timeout_secs: u64,
+
+    /// Run without the egui UI: discover, probe, write a static report, and
+    /// exit. Opt-in; normal (UI) mode is unaffected.
+    #[arg(long)]
+    pub headless: bool,
+
+    /// Probe at most this many discovered nodes (headless only). Omit to
+    /// probe every discovered node.
+    #[arg(long)]
+    pub node_limit: Option<usize>,
+
+    /// Directory the headless report (index.html, results.json,
+    /// results.csv) is written to.
+    #[arg(long, default_value = "./spv-health-report")]
+    pub output_dir: PathBuf,
 }
 
 /// How much chain each probe asks the node to serve.
