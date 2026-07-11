@@ -164,29 +164,41 @@ fn write_report(nodes: &[NodeRecord], tip_height: u32, output_dir: &Path) -> Res
     Ok(())
 }
 
-const HEADERS: [&str; 22] = [
-    "address",
-    "pro tx hash",
-    "kind",
-    "valid",
-    "status",
-    "stale",
-    "score",
-    "grade",
-    "headers",
-    "hdr target",
-    "hdr/s",
-    "filter hdrs",
-    "filters",
-    "filt/s",
-    "advertised",
-    "connect ms",
-    "ping ms",
-    "bytes",
-    "timeouts",
-    "val failures",
-    "secs",
-    "error",
+/// A column's cell renderer.
+type ColumnFn = fn(&export::ExportRow) -> String;
+
+/// Each report column as a (header label, cell renderer) pair, so a column
+/// can never desync from its header — reordering or adding one is a single
+/// edit here instead of two parallel lists kept in sync by hand.
+const COLUMNS: &[(&str, ColumnFn)] = &[
+    ("address", |r| escape_html(&r.address)),
+    ("pro tx hash", |r| escape_html(&r.pro_tx_hash)),
+    ("kind", |r| r.kind.to_string()),
+    ("valid", |r| r.valid.to_string()),
+    ("status", |r| r.status.to_string()),
+    ("stale", |r| opt_disp(r.stale)),
+    ("score", |r| opt_fmt(r.score, |v| format!("{v:.1}"))),
+    ("grade", |r| grade_badge(r.grade)),
+    ("headers", |r| opt_disp(r.headers_synced)),
+    ("hdr target", |r| opt_disp(r.headers_target)),
+    ("hdr/s", |r| {
+        opt_fmt(r.headers_per_sec, |v| format!("{v:.1}"))
+    }),
+    ("filter hdrs", |r| opt_disp(r.filter_headers_synced)),
+    ("filters", |r| opt_disp(r.filters_synced)),
+    ("filt/s", |r| {
+        opt_fmt(r.filters_per_sec, |v| format!("{v:.1}"))
+    }),
+    ("advertised", |r| opt_disp(r.advertised_height)),
+    ("connect ms", |r| opt_disp(r.connect_ms)),
+    ("ping ms", |r| opt_disp(r.avg_ping_ms)),
+    ("bytes", |r| opt_disp(r.bytes_received)),
+    ("timeouts", |r| opt_disp(r.timeouts)),
+    ("val failures", |r| opt_disp(r.validation_failures)),
+    ("secs", |r| opt_fmt(r.total_secs, |v| format!("{v:.2}"))),
+    ("error", |r| {
+        r.error.as_deref().map(escape_html).unwrap_or_default()
+    }),
 ];
 
 const STYLE: &str = r#"
@@ -269,7 +281,7 @@ fn render_html(nodes: &[NodeRecord], tip_height: u32) -> String {
     html.push_str("</div>\n");
 
     html.push_str("<div class=\"table-wrap\">\n<table>\n<thead><tr>");
-    for header in HEADERS {
+    for (header, _) in COLUMNS {
         html.push_str(&format!("<th>{header}</th>"));
     }
     html.push_str("</tr></thead>\n<tbody>\n");
@@ -300,39 +312,23 @@ fn opt_fmt<T>(value: Option<T>, f: impl Fn(T) -> String) -> String {
     value.map(f).unwrap_or_else(|| "—".to_string())
 }
 
-fn row_html(r: &export::ExportRow) -> String {
-    let grade_cell = match r.grade {
+fn grade_badge(grade: Option<&str>) -> String {
+    match grade {
         Some(g) => format!(
-            "<td><span class=\"grade grade-{}\">{g}</span></td>",
+            "<span class=\"grade grade-{}\">{g}</span>",
             g.to_lowercase()
         ),
-        None => td("—"),
-    };
-    let cells = [
-        td(&escape_html(&r.address)),
-        td(&escape_html(&r.pro_tx_hash)),
-        td(r.kind),
-        td(&r.valid.to_string()),
-        td(r.status),
-        td(&opt_disp(r.stale)),
-        td(&opt_fmt(r.score, |v| format!("{v:.1}"))),
-        grade_cell,
-        td(&opt_disp(r.headers_synced)),
-        td(&opt_disp(r.headers_target)),
-        td(&opt_fmt(r.headers_per_sec, |v| format!("{v:.1}"))),
-        td(&opt_disp(r.filter_headers_synced)),
-        td(&opt_disp(r.filters_synced)),
-        td(&opt_fmt(r.filters_per_sec, |v| format!("{v:.1}"))),
-        td(&opt_disp(r.advertised_height)),
-        td(&opt_disp(r.connect_ms)),
-        td(&opt_disp(r.avg_ping_ms)),
-        td(&opt_disp(r.bytes_received)),
-        td(&opt_disp(r.timeouts)),
-        td(&opt_disp(r.validation_failures)),
-        td(&opt_fmt(r.total_secs, |v| format!("{v:.2}"))),
-        td(&r.error.as_deref().map(escape_html).unwrap_or_default()),
-    ];
-    format!("<tr>{}</tr>\n", cells.concat())
+        None => "—".to_string(),
+    }
+}
+
+fn row_html(r: &export::ExportRow) -> String {
+    let mut out = String::from("<tr>");
+    for (_, cell) in COLUMNS {
+        out.push_str(&td(&cell(r)));
+    }
+    out.push_str("</tr>\n");
+    out
 }
 
 fn escape_html(s: &str) -> String {
@@ -466,7 +462,7 @@ mod tests {
         let html = render_html(&nodes, 1);
         let th_count = html.matches("<th>").count();
         let td_count = html.matches("<td>").count();
-        assert_eq!(th_count, HEADERS.len());
-        assert_eq!(td_count, HEADERS.len() * nodes.len());
+        assert_eq!(th_count, COLUMNS.len());
+        assert_eq!(td_count, COLUMNS.len() * nodes.len());
     }
 }
