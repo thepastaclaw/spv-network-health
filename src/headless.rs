@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::SystemTime;
 
 use anyhow::{Context, Result};
 
@@ -19,6 +20,47 @@ pub struct Summary {
     pub graded: usize,
     pub failed: usize,
     pub output_dir: PathBuf,
+}
+
+/// Whether a report covers every discovered node or only a `--node-limit`
+/// slice of them. Kept distinct from a plain count so a report can never be
+/// mistaken for whole-network results when it isn't one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReportScope {
+    /// Every discovered node was probed.
+    Complete,
+    /// Only `probed` of `total` discovered nodes were probed, per
+    /// `--node-limit`.
+    Sample { probed: usize, total: usize },
+}
+
+impl ReportScope {
+    fn label(&self) -> String {
+        match self {
+            ReportScope::Complete => "complete network".to_string(),
+            ReportScope::Sample { probed, total } => format!("sample {probed} of {total}"),
+        }
+    }
+}
+
+/// Everything about *how* a report was produced, as distinct from the probe
+/// rows themselves — so a report is never read as whole-network results
+/// when it's actually a `--node-limit` sample. Populated in [`run`] before
+/// any truncation happens, and threaded through unchanged to
+/// [`write_report`] / `render_html`.
+#[derive(Debug, Clone)]
+pub struct ReportMetadata {
+    pub network: String,
+    pub generated_at_utc: String,
+    pub tip_height: u32,
+    /// Nodes discovered from the masternode list, before `--node-limit` is
+    /// applied.
+    pub discovered_count: usize,
+    pub scope: ReportScope,
+    pub sync_depth: String,
+    pub filters_enabled: bool,
+    pub concurrency: usize,
+    pub probe_timeout_secs: u64,
 }
 
 /// Discover, probe, write the report, and return counts. No UI, no egui —
@@ -55,12 +97,32 @@ pub async fn run(
     let results_store = Arc::new(store::SharedStore::load(store::store_path(&config)));
     let tip_height = discovered.tip_height;
     let mut nodes = results_store.merge_discovered(discovered.nodes, tip_height);
+    let discovered_count = nodes.len();
     if let Some(limit) = node_limit {
         nodes.truncate(limit);
     }
     if nodes.is_empty() {
         anyhow::bail!("no nodes to probe");
     }
+    let scope = if nodes.len() < discovered_count {
+        ReportScope::Sample {
+            probed: nodes.len(),
+            total: discovered_count,
+        }
+    } else {
+        ReportScope::Complete
+    };
+    let metadata = ReportMetadata {
+        network: config.network.to_string(),
+        generated_at_utc: format_utc_rfc3339(SystemTime::now()),
+        tip_height,
+        discovered_count,
+        scope,
+        sync_depth: config.probe.depth.label(),
+        filters_enabled: config.probe.enable_filters,
+        concurrency: config.probe.concurrency,
+        probe_timeout_secs: config.probe.timeout.as_secs(),
+    };
 
     let targets: Vec<SocketAddr> = nodes.iter().map(|n| n.address).collect();
     let identities: HashMap<SocketAddr, store::NodeIdentity> = nodes
@@ -134,7 +196,7 @@ pub async fn run(
     }
     results_store.flush_if_dirty();
 
-    write_report(&nodes, tip_height, &output_dir)?;
+    write_report(&nodes, &metadata, &output_dir)?;
     Ok(Summary {
         probed: total,
         graded,
@@ -145,7 +207,7 @@ pub async fn run(
 
 /// Write `index.html`, `results.json`, and `results.csv` into `output_dir`
 /// (created if missing). Pure and network-free — exercised directly by tests.
-fn write_report(nodes: &[NodeRecord], tip_height: u32, output_dir: &Path) -> Result<()> {
+fn write_report(nodes: &[NodeRecord], metadata: &ReportMetadata, output_dir: &Path) -> Result<()> {
     std::fs::create_dir_all(output_dir)
         .with_context(|| format!("failed to create output directory {}", output_dir.display()))?;
 
@@ -156,12 +218,41 @@ fn write_report(nodes: &[NodeRecord], tip_height: u32, output_dir: &Path) -> Res
     .context("failed to write results.json")?;
     std::fs::write(output_dir.join("results.csv"), export::to_csv(nodes.iter()))
         .context("failed to write results.csv")?;
-    std::fs::write(
-        output_dir.join("index.html"),
-        render_html(nodes, tip_height),
-    )
-    .context("failed to write index.html")?;
+    std::fs::write(output_dir.join("index.html"), render_html(nodes, metadata))
+        .context("failed to write index.html")?;
     Ok(())
+}
+
+/// Format a `SystemTime` as a UTC RFC 3339 timestamp (e.g.
+/// `2026-07-10T12:34:56Z`), without pulling in a chrono/time dependency for
+/// one call site.
+fn format_utc_rfc3339(t: SystemTime) -> String {
+    let secs = t
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let days = (secs / 86_400) as i64;
+    let rem = secs % 86_400;
+    let (hour, min, sec) = (rem / 3600, (rem % 3600) / 60, rem % 60);
+    let (year, month, day) = civil_from_days(days);
+    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{min:02}:{sec:02}Z")
+}
+
+/// Days-since-epoch to (year, month, day), proleptic Gregorian calendar.
+/// Howard Hinnant's `civil_from_days` algorithm:
+/// <http://howardhinnant.github.io/date_algorithms.html>.
+fn civil_from_days(z: i64) -> (i64, u32, u32) {
+    let z = z + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    let year = if month <= 2 { y + 1 } else { y };
+    (year, month, day)
 }
 
 /// A column's cell renderer.
@@ -225,7 +316,7 @@ th { position: sticky; top: 0; background: Canvas; }
 /// Render a self-contained, offline-safe HTML report (no external resources,
 /// no script). Every untrusted string (address, pro_tx_hash, error text) is
 /// HTML-escaped; only compile-time-constant labels are embedded raw.
-fn render_html(nodes: &[NodeRecord], tip_height: u32) -> String {
+fn render_html(nodes: &[NodeRecord], metadata: &ReportMetadata) -> String {
     let mut rows = export::rows(nodes.iter());
     rows.sort_by(|a, b| {
         b.score
@@ -260,8 +351,22 @@ fn render_html(nodes: &[NodeRecord], tip_height: u32) -> String {
     html.push_str(STYLE);
     html.push_str("</style>\n</head>\n<body>\n<h1>Dash SPV Network Health</h1>\n");
     html.push_str(&format!(
-        "<p class=\"meta\">network tip {tip_height} &middot; {} nodes probed</p>\n",
-        rows.len(),
+        "<p class=\"meta\">network: {} &middot; generated: {} &middot; tip: {} &middot; \
+         discovered: {} nodes &middot; scope: {} &middot; sync depth: {} &middot; \
+         filters: {} &middot; concurrency: {} &middot; probe timeout: {}s</p>\n",
+        escape_html(&metadata.network),
+        escape_html(&metadata.generated_at_utc),
+        metadata.tip_height,
+        metadata.discovered_count,
+        escape_html(&metadata.scope.label()),
+        escape_html(&metadata.sync_depth),
+        if metadata.filters_enabled {
+            "enabled"
+        } else {
+            "disabled"
+        },
+        metadata.concurrency,
+        metadata.probe_timeout_secs,
     ));
 
     html.push_str("<div class=\"summary\">\n");
@@ -412,13 +517,31 @@ mod tests {
         ))
     }
 
+    fn sample_metadata(scope: ReportScope) -> ReportMetadata {
+        ReportMetadata {
+            network: "dash".to_string(),
+            generated_at_utc: "2026-07-10T12:34:56Z".to_string(),
+            tip_height: 123_456,
+            discovered_count: match scope {
+                ReportScope::Complete => 3,
+                ReportScope::Sample { total, .. } => total,
+            },
+            scope,
+            sync_depth: "last 1000 blocks".to_string(),
+            filters_enabled: true,
+            concurrency: 8,
+            probe_timeout_secs: 180,
+        }
+    }
+
     #[test]
     fn write_report_creates_all_three_files() {
         let dir = temp_dir("write-report");
         let _ = std::fs::remove_dir_all(&dir);
         let nodes = sample_nodes();
+        let metadata = sample_metadata(ReportScope::Complete);
 
-        write_report(&nodes, 123_456, &dir).expect("report should write");
+        write_report(&nodes, &metadata, &dir).expect("report should write");
 
         let html = std::fs::read_to_string(dir.join("index.html")).expect("index.html");
         let csv = std::fs::read_to_string(dir.join("results.csv")).expect("results.csv");
@@ -435,7 +558,8 @@ mod tests {
     #[test]
     fn html_escapes_untrusted_error_text() {
         let nodes = sample_nodes();
-        let html = render_html(&nodes, 1);
+        let metadata = sample_metadata(ReportScope::Complete);
+        let html = render_html(&nodes, &metadata);
         assert!(
             !html.contains("<script>"),
             "raw script tag leaked into the report"
@@ -448,7 +572,8 @@ mod tests {
     #[test]
     fn html_summarizes_counts_and_grades() {
         let nodes = sample_nodes();
-        let html = render_html(&nodes, 1);
+        let metadata = sample_metadata(ReportScope::Complete);
+        let html = render_html(&nodes, &metadata);
         // One graded (Done), one failed, one pending (neither).
         assert!(html.contains("<span class=\"n\">1</span>graded"));
         assert!(html.contains("<span class=\"n\">1</span>failed"));
@@ -459,10 +584,41 @@ mod tests {
     #[test]
     fn header_and_row_have_equal_column_count() {
         let nodes = sample_nodes();
-        let html = render_html(&nodes, 1);
+        let metadata = sample_metadata(ReportScope::Complete);
+        let html = render_html(&nodes, &metadata);
         let th_count = html.matches("<th>").count();
         let td_count = html.matches("<td>").count();
         assert_eq!(th_count, COLUMNS.len());
         assert_eq!(td_count, COLUMNS.len() * nodes.len());
+    }
+
+    #[test]
+    fn html_labels_complete_scope() {
+        let nodes = sample_nodes();
+        let metadata = sample_metadata(ReportScope::Complete);
+        let html = render_html(&nodes, &metadata);
+        assert!(html.contains("scope: complete network"));
+        assert!(!html.contains("sample"));
+    }
+
+    #[test]
+    fn html_labels_sample_scope() {
+        let nodes = sample_nodes();
+        let metadata = sample_metadata(ReportScope::Sample {
+            probed: 3,
+            total: 500,
+        });
+        let html = render_html(&nodes, &metadata);
+        assert!(html.contains("scope: sample 3 of 500"));
+    }
+
+    #[test]
+    fn html_metadata_paragraph_is_escaped() {
+        let nodes = sample_nodes();
+        let mut metadata = sample_metadata(ReportScope::Complete);
+        metadata.network = "<script>alert(1)</script>".to_string();
+        let html = render_html(&nodes, &metadata);
+        assert!(!html.contains("<script>alert(1)</script>"));
+        assert!(html.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
     }
 }

@@ -61,9 +61,34 @@ The report directory contains:
 - `results.json` / `results.csv` — the same rows the UI's export buttons
   produce, for further processing
 
+`index.html` always leads with a metadata line so a `--node-limit` sample
+can never be mistaken for whole-network results: network, generated-at
+(UTC), tip height, nodes discovered before `--node-limit` was applied,
+scope (`complete network` or `sample N of M`), sync depth, whether filters
+were enabled, concurrency, and the per-probe timeout.
+
 The process exits non-zero on discovery failure or if there are no nodes to
 probe; per-node probe failures are recorded in the report instead of
 aborting the run.
+
+### Publishing to GitHub Pages
+
+To publish a report to a `gh-pages` branch:
+
+```bash
+cargo run -- --headless --network mainnet --output-dir ./spv-health-report
+
+git worktree add /tmp/gh-pages gh-pages 2>/dev/null || \
+  git worktree add -B gh-pages /tmp/gh-pages origin/main
+rm -rf /tmp/gh-pages/*
+cp -r spv-health-report/* /tmp/gh-pages/
+cd /tmp/gh-pages
+git add index.html results.json results.csv
+git commit -m "chore: publish network health report"
+git push origin gh-pages
+cd -
+git worktree remove /tmp/gh-pages
+```
 
 ## Architecture
 
