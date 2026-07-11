@@ -4,7 +4,6 @@
 //! backend every frame and sends [`Command`]s when the user acts.
 
 mod detail;
-mod export;
 mod table;
 
 use std::collections::BTreeMap;
@@ -16,6 +15,7 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use crate::backend::{AppEvent, Command};
 use crate::config::{AppConfig, SyncDepth};
+use crate::export;
 use crate::types::{HistoryEntry, LetterGrade, NodeKind, NodeRecord, NodeStatus};
 
 pub(super) fn grade_color(letter: LetterGrade) -> egui::Color32 {

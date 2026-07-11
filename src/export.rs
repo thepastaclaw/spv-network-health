@@ -1,4 +1,5 @@
-//! CSV / JSON export of the currently visible node rows.
+//! CSV / JSON export of node rows, shared by the egui "copy" buttons and the
+//! headless report writer.
 
 use serde::Serialize;
 
@@ -6,29 +7,29 @@ use crate::types::{NodeRecord, NodeStatus};
 
 /// Flattened, serialization-friendly view of one node row.
 #[derive(Serialize)]
-struct ExportRow {
-    address: String,
-    pro_tx_hash: String,
-    kind: &'static str,
-    valid: bool,
-    status: &'static str,
-    stale: Option<bool>,
-    score: Option<f64>,
-    grade: Option<&'static str>,
-    headers_synced: Option<u32>,
-    headers_target: Option<u32>,
-    headers_per_sec: Option<f64>,
-    filter_headers_synced: Option<u32>,
-    filters_synced: Option<u32>,
-    filters_per_sec: Option<f64>,
-    advertised_height: Option<u32>,
-    connect_ms: Option<u64>,
-    avg_ping_ms: Option<u64>,
-    bytes_received: Option<u64>,
-    timeouts: Option<u32>,
-    validation_failures: Option<u32>,
-    total_secs: Option<f64>,
-    error: Option<String>,
+pub(crate) struct ExportRow {
+    pub(crate) address: String,
+    pub(crate) pro_tx_hash: String,
+    pub(crate) kind: &'static str,
+    pub(crate) valid: bool,
+    pub(crate) status: &'static str,
+    pub(crate) stale: Option<bool>,
+    pub(crate) score: Option<f64>,
+    pub(crate) grade: Option<&'static str>,
+    pub(crate) headers_synced: Option<u32>,
+    pub(crate) headers_target: Option<u32>,
+    pub(crate) headers_per_sec: Option<f64>,
+    pub(crate) filter_headers_synced: Option<u32>,
+    pub(crate) filters_synced: Option<u32>,
+    pub(crate) filters_per_sec: Option<f64>,
+    pub(crate) advertised_height: Option<u32>,
+    pub(crate) connect_ms: Option<u64>,
+    pub(crate) avg_ping_ms: Option<u64>,
+    pub(crate) bytes_received: Option<u64>,
+    pub(crate) timeouts: Option<u32>,
+    pub(crate) validation_failures: Option<u32>,
+    pub(crate) total_secs: Option<f64>,
+    pub(crate) error: Option<String>,
 }
 
 const CSV_HEADER: &str = "address,pro_tx_hash,kind,valid,status,stale,score,grade,headers_synced,\
@@ -36,7 +37,7 @@ headers_target,headers_per_sec,filter_headers_synced,filters_synced,filters_per_
 advertised_height,connect_ms,avg_ping_ms,bytes_received,timeouts,validation_failures,\
 total_secs,error";
 
-fn row(node: &NodeRecord) -> ExportRow {
+pub(crate) fn row(node: &NodeRecord) -> ExportRow {
     let mut row = ExportRow {
         address: node.address.to_string(),
         pro_tx_hash: node.pro_tx_hash.to_string(),
@@ -89,9 +90,13 @@ fn row(node: &NodeRecord) -> ExportRow {
     row
 }
 
+/// Flatten every node into an [`ExportRow`], preserving iteration order.
+pub(crate) fn rows<'a>(nodes: impl Iterator<Item = &'a NodeRecord>) -> Vec<ExportRow> {
+    nodes.map(row).collect()
+}
+
 pub fn to_json<'a>(nodes: impl Iterator<Item = &'a NodeRecord>) -> String {
-    let rows: Vec<ExportRow> = nodes.map(row).collect();
-    serde_json::to_string_pretty(&rows).unwrap_or_else(|e| format!("export failed: {e}"))
+    serde_json::to_string_pretty(&rows(nodes)).unwrap_or_else(|e| format!("export failed: {e}"))
 }
 
 pub fn to_csv<'a>(nodes: impl Iterator<Item = &'a NodeRecord>) -> String {

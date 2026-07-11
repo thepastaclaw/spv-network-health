@@ -4,6 +4,7 @@
 
 mod backend;
 mod config;
+mod export;
 mod grading;
 mod types;
 mod ui;
